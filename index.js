@@ -1,4 +1,5 @@
 const express = require("express");
+const path =require('path')
 const app = express();
 const urlrouter = require("./routes/url.route");
 const connecttomongodb = require("./config/database_connect");
@@ -6,6 +7,8 @@ const urlModel = require("./model/url.model");
 
 app.use(express.json());
 app.use("/url", urlrouter);
+app.set("view engine","ejs")
+app.set('views',path.resolve("./views"))
 connecttomongodb("mongodb://localhost:27017/short-url")
   .then(() => {
     console.log("connected to mongodb");
@@ -13,16 +16,11 @@ connecttomongodb("mongodb://localhost:27017/short-url")
   .catch((err) => {
     console.log("failed to connect to mongodb", err);
   });
-app.get("/:shortId", async (req, res) => {
-  const shortId = req.params.shortId;
-  const entry = await urlModel.findOneAndUpdate(
-    { shortId: shortId },
-    { $push: { visithistory: { timestamp: Date.now() } } }
-  );
-  if (!entry) {
-    return res.status(404).json({ message: "Short URL not found" });
-  }
-  res.redirect(entry.redirectUrl);
+
+app.get("/home", async (req, res) => {
+  const allUrls = await urlModel.find({});
+
+  return res.render('home')
 });
 
 app.listen(3000, () => {
