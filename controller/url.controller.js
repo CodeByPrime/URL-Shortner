@@ -4,14 +4,19 @@ const mongoose = require("mongoose");
 
 async function Handlegenerateshorturl(req, res) {
   const body = req.body;
-  if (!body.url) return res.status(400).json({ message: "url is required" });
+  console.log("Request body:", req.body); // Debug log
+  if (!body || !body.url) {
+    return res.status(400).json({ message: "url is required" });
+  }
   const shortId = nanoid(9);
   await urlModel.create({
     shortId: shortId,
     redirectUrl: body.url,
     visithistory: [],
   });
-  res.status(201).json({ shortUrl: `http://localhost:3000/${shortId}` });
+ return res.render('home',{
+  id:shortId
+ })
 }
 
 async function Handlegetanalytics(req, res) {
@@ -22,8 +27,8 @@ async function Handlegetanalytics(req, res) {
     analytics: result.visithistory,
   });
 }
-async function redirectUser(req,res){
-   const shortId = req.params.shortId;
+async function redirectUser(req, res) {
+  const shortId = req.params.shortId;
   const entry = await urlModel.findOneAndUpdate(
     { shortId: shortId },
     { $push: { visithistory: { timestamp: Date.now() } } }
@@ -32,5 +37,5 @@ async function redirectUser(req,res){
     return res.status(404).json({ message: "Short URL not found" });
   }
   res.redirect(entry.redirectUrl);
-} 
-module.exports = { Handlegenerateshorturl ,Handlegetanalytics,redirectUser};
+}
+module.exports = { Handlegenerateshorturl, Handlegetanalytics, redirectUser };
