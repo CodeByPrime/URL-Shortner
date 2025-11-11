@@ -22,4 +22,15 @@ async function Handlegetanalytics(req, res) {
     analytics: result.visithistory,
   });
 }
-module.exports = { Handlegenerateshorturl ,Handlegetanalytics};
+async function redirectUser(req,res){
+   const shortId = req.params.shortId;
+  const entry = await urlModel.findOneAndUpdate(
+    { shortId: shortId },
+    { $push: { visithistory: { timestamp: Date.now() } } }
+  );
+  if (!entry) {
+    return res.status(404).json({ message: "Short URL not found" });
+  }
+  res.redirect(entry.redirectUrl);
+} 
+module.exports = { Handlegenerateshorturl ,Handlegetanalytics,redirectUser};
